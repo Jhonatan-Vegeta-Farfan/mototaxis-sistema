@@ -1,0 +1,300 @@
+/* Estilos para el sistema principal de MotoTaxis */
+.login-body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.token-preview {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    border: 1px solid #dee2e6;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #198754;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-info {
+    border-left-color: #0dcaf0;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.token-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.token-preview, .token-complete {
+    background-color: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    border: 1px solid #dee2e6;
+}
+
+.token-full {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    display: block;
+    line-height: 1.4;
+    border: 1px solid #dee2e6;
+}
+
+.btn-group .btn {
+    margin: 0 2px;
+}
+
+/* Mejoras responsive */
+@media (max-width: 768px) {
+    .token-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-group .btn {
+        margin: 0;
+        text-align: center;
+    }
+    
+    .table-responsive {
+        font-size: 0.9em;
+    }
+}
+
+/* Estilos para las tarjetas de tokens en el dashboard */
+.token-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid #e9ecef;
+}
+
+.token-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.token-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.75rem 1rem;
+}
+
+.token-card .card-body {
+    padding: 1rem;
+}
+
+.token-card .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 0.5rem 1rem;
+}
+
+/* Mejoras para los tokens en el dashboard */
+.token-container {
+    margin-bottom: 10px;
+}
+
+.token-preview, .token-complete {
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8em;
+    border: 1px solid #dee2e6;
+    display: block;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+
+.token-complete {
+    font-size: 0.75em;
+    line-height: 1.3;
+}
+
+/* Botones en las tarjetas */
+.btn-group .btn {
+    border-radius: 4px;
+    margin: 0 1px;
+}
+
+/* Responsive para el dashboard */
+@media (max-width: 768px) {
+    .token-card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin: 1px 0;
+        border-radius: 4px;
+    }
+}
+
+/* Badges mejorados */
+.badge {
+    font-size: 0.7em;
+    font-weight: 500;
+}
+
+/* Mejoras para textos */
+.card-text {
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.text-muted {
+    font-size: 0.8em;
+}
+
+/* Estilos para el footer */
+footer {
+    margin-top: auto !important;
+}
+
+/* Estilos para íconos */
+.fas, .fab {
+    margin-right: 0.25em;
+}
+
+/* Estilos para tablas mejoradas */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.075);
+}
+
+/* Estilos para formularios */
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Estilos para cards de estadísticas */
+.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
+    border: none;
+}
+
+.card.bg-primary .card-body, 
+.card.bg-success .card-body, 
+.card.bg-info .card-body, 
+.card.bg-warning .card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos específicos para login */
+.system-choice {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.system-btn {
+    margin: 0 10px;
+    padding: 10px 20px;
+}
+
+/* Mejoras visuales generales */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.shadow {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Animaciones suaves */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mejoras para badges */
+.badge {
+    font-size: 0.75em;
+}
+
+/* Estilos para código */
+code {
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Mejoras para cards con iconos */
+.card-with-icon .card-body {
+    padding: 2rem;
+}
+
+.card-with-icon i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
