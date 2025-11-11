@@ -14,7 +14,7 @@
                         <div class="input-group">
                             <input type="password" class="form-control" id="apiToken" 
                                    placeholder="Ingrese su token de acceso API"
-                                   value="">
+                                   hidden="">
                             <button class="btn btn-outline-secondary" type="button" id="toggleToken">
                                 <i class="fas fa-eye"></i>
                             </button>
