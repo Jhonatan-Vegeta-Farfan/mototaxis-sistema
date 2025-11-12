@@ -1,2 +1,4 @@
-api_config.php
+# Archivos de configuración sensible
+config.php
 database.php
+api_config.php
