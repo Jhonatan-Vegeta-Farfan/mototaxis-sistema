@@ -219,15 +219,8 @@
             <div class="collapse navbar-collapse" id="navbarPublic">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="../sistema-principal/dashboard.php" target="_blank">
-                            <i class="fas fa-tachometer-alt me-1"></i>Sistema Principal
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
-                        </a>
-                    </li>
+
+
                 </ul>
             </div>
         </div>

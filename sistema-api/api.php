@@ -14,16 +14,12 @@
                         <div class="input-group">
                             <input type="password" class="form-control" id="apiToken" 
                                    placeholder="Ingrese su token de acceso API"
-                                   hidden="">
+                                   value="">
                             <button class="btn btn-outline-secondary" type="button" id="toggleToken">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
-                        <div class="form-text">
-                            <strong>Tokens disponibles:</strong><br>
-                            • 716532101831aa4b61b6816e40e398bd-MOT-2<br>
-                            • 8ed9873d99e3ab18c922eaf4af3ee20f-STI-1
-                        </div>
+
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-primary w-100" id="validateToken">

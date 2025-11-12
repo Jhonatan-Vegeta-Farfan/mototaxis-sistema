@@ -20,9 +20,7 @@
                 <p class="mb-0 text-light opacity-75">
                     Todos los derechos reservados
                 </p>
-                <a href="../sistema-principal/dashboard.php" target="_blank" class="btn btn-sm btn-outline-light mt-2">
-                    <i class="fas fa-external-link-alt me-1"></i>Sistema Principal
-                </a>
+
             </div>
         </div>
     </div>

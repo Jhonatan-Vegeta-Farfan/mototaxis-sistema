@@ -10,6 +10,12 @@ $total_tokens = $stmt->fetch()['total_tokens'];
 $stmt = $pdo->query("SELECT COUNT(*) as total_usuarios FROM usuarios");
 $total_usuarios = $stmt->fetch()['total_usuarios'];
 
+// Obtener estadísticas de tokens auto-generados
+$stmt = $pdo->query("SELECT COUNT(*) as auto_generados FROM token_api WHERE token REGEXP '^[a-f0-9]{32}-MOT-[0-9]+$'");
+$auto_generados = $stmt->fetch()['auto_generados'];
+
+$tokens_manuales = $total_tokens - $auto_generados;
+
 // Obtener todos los tokens para mostrar en el dashboard
 $stmt = $pdo->query("SELECT * FROM token_api ORDER BY id DESC");
 $tokens = $stmt->fetchAll();
@@ -27,39 +33,7 @@ $tokens = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Estadísticas -->
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">Total de Tokens</h5>
-                        <h2 class="card-text"><?php echo $total_tokens; ?></h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-key fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">Usuarios del Sistema</h5>
-                        <h2 class="card-text"><?php echo $total_usuarios; ?></h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-users fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Acciones Rápidas -->
 <div class="row mt-4">
@@ -72,11 +46,14 @@ $tokens = $stmt->fetchAll();
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2 d-md-flex">
-                    <a href="tokens.php" class="btn btn-primary me-md-2">
+                    <a href="generar_token.php" class="btn btn-primary me-md-2">
+                        <i class="fas fa-bolt me-1"></i>Generar Nuevo Token
+                    </a>
+                    <a href="tokens.php" class="btn btn-success me-md-2">
                         <i class="fas fa-list me-1"></i>Ver Todos los Tokens
                     </a>
-                    <a href="agregar_token.php" class="btn btn-success me-md-2">
-                        <i class="fas fa-plus me-1"></i>Agregar Nuevo Token
+                    <a href="agregar_token.php" class="btn btn-warning me-md-2">
+                        <i class="fas fa-plus me-1"></i>Agregar Token Manual
                     </a>
                     <a href="../sistema-api/api.php" target="_blank" class="btn btn-info">
                         <i class="fas fa-external-link-alt me-1"></i>Abrir API Pública
@@ -95,7 +72,11 @@ $tokens = $stmt->fetchAll();
                 <h5 class="card-title mb-0">
                     <i class="fas fa-eye me-2"></i>Vista Previa de Tokens
                 </h5>
-                <span class="badge bg-primary"><?php echo $total_tokens; ?> tokens</span>
+                <div>
+                    <span class="badge bg-primary"><?php echo $total_tokens; ?> tokens</span>
+                    <span class="badge bg-success"><?php echo $auto_generados; ?> auto</span>
+                    <span class="badge bg-warning text-dark"><?php echo $tokens_manuales; ?> manual</span>
+                </div>
             </div>
             <div class="card-body">
                 <?php if (count($tokens) > 0): ?>
@@ -106,7 +87,16 @@ $tokens = $stmt->fetchAll();
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <h6 class="card-title mb-0">Token #<?php echo $token['id']; ?></h6>
-                                            <span class="badge bg-secondary"><?php echo strlen($token['token']); ?> chars</span>
+                                            <div>
+                                                <?php 
+                                                $es_auto_generado = preg_match('/^[a-f0-9]{32}-MOT-\d+$/', $token['token']);
+                                                if ($es_auto_generado): ?>
+                                                    <span class="badge bg-success">Auto</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning text-dark">Manual</span>
+                                                <?php endif; ?>
+                                                <span class="badge bg-secondary"><?php echo strlen($token['token']); ?> chars</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -130,6 +120,18 @@ $tokens = $stmt->fetchAll();
                                                     <?php echo htmlspecialchars($token['token']); ?>
                                                 </code>
                                             </div>
+                                        </div>
+
+                                        <!-- Información del formato -->
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                <?php if ($es_auto_generado): ?>
+                                                    Formato: <code>xxxxxxxx-MOT-n</code>
+                                                <?php else: ?>
+                                                    Formato personalizado
+                                                <?php endif; ?>
+                                            </small>
                                         </div>
 
                                         <!-- Acciones rápidas -->
@@ -164,9 +166,14 @@ $tokens = $stmt->fetchAll();
                     <div class="text-center py-4">
                         <i class="fas fa-key fa-3x text-muted mb-3"></i>
                         <p class="text-muted">No hay tokens registrados.</p>
-                        <a href="agregar_token.php" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Agregar Primer Token
-                        </a>
+                        <div class="d-grid gap-2 d-md-flex justify-content-center">
+                            <a href="generar_token.php" class="btn btn-primary me-md-2">
+                                <i class="fas fa-bolt me-1"></i>Generar Primer Token
+                            </a>
+                            <a href="agregar_token.php" class="btn btn-success">
+                                <i class="fas fa-plus me-1"></i>Agregar Token Manual
+                            </a>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
