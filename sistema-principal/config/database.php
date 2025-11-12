@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost:8889';
-$dbname = 'cliente_api';
+$dbname = 'prograp_cliente_api';
 $username = 'root';
 $password = 'root';
 

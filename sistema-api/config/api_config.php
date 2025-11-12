@@ -2,7 +2,7 @@
 class ApiConfig {
     // Configuración para la base de datos de tokens
     const DB_HOST = 'localhost';
-    const DB_NAME = 'cliente_api';
+    const DB_NAME = 'prograp_cliente_api';
     const DB_USER = 'root';
     const DB_PASS = 'root'; // Para MAMP
     
