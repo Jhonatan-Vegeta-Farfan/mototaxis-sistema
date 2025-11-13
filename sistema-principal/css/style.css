@@ -298,3 +298,131 @@ code {
     margin-bottom: 1rem;
     opacity: 0.7;
 }
+/* Sistema de Notificaciones Toast Mejorado */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.custom-toast {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: none;
+    margin-bottom: 15px;
+    overflow: hidden;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.custom-toast.hiding {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+
+.toast-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    color: white;
+    border-bottom: none;
+    padding: 12px 15px;
+}
+
+.toast-body {
+    padding: 15px;
+    color: #333;
+    font-weight: 500;
+}
+
+.toast-success .toast-header {
+    background: linear-gradient(135deg, var(--success-green), #2ecc71);
+}
+
+.toast-error .toast-header {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+}
+
+.toast-warning .toast-header {
+    background: linear-gradient(135deg, var(--warning-orange), #f39c12);
+}
+
+.toast-info .toast-header {
+    background: linear-gradient(135deg, #17a2b8, #3498db);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.7);
+    width: 100%;
+    animation: progressBar 5s linear forwards;
+}
+
+@keyframes progressBar {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+/* Mejoras para las tarjetas de tokens */
+.token-card {
+    transition: all 0.3s ease;
+}
+
+.token-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.token-container {
+    margin-bottom: 10px;
+}
+
+.token-preview, .token-complete {
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8em;
+    border: 1px solid #dee2e6;
+    display: block;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+
+.token-complete {
+    font-size: 0.75em;
+    line-height: 1.3;
+}

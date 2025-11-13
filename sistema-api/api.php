@@ -191,6 +191,95 @@ require_once 'config/api_config.php';
             color: var(--primary-blue);
         }
 
+        /* Sistema de Notificaciones Toast Mejorado */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        }
+
+        .custom-toast {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: none;
+            margin-bottom: 15px;
+            overflow: hidden;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .custom-toast.hiding {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        .toast-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            border-bottom: none;
+            padding: 12px 15px;
+        }
+
+        .toast-body {
+            padding: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .toast-success .toast-header {
+            background: linear-gradient(135deg, var(--success-green), #2ecc71);
+        }
+
+        .toast-error .toast-header {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        .toast-warning .toast-header {
+            background: linear-gradient(135deg, var(--warning-orange), #f39c12);
+        }
+
+        .toast-info .toast-header {
+            background: linear-gradient(135deg, #17a2b8, #3498db);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.7);
+            width: 100%;
+            animation: progressBar 5s linear forwards;
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .card-header {
@@ -203,6 +292,13 @@ require_once 'config/api_config.php';
             
             .container {
                 padding: 0 15px;
+            }
+
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
             }
         }
     </style>
@@ -231,6 +327,9 @@ require_once 'config/api_config.php';
             </div>
         </div>
     </nav>
+
+    <!-- Contenedor de Notificaciones Toast -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -357,6 +456,93 @@ require_once 'config/api_config.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    // Sistema de Notificaciones Toast
+    class NotificationSystem {
+        constructor() {
+            this.container = document.getElementById('toastContainer');
+            this.toastCount = 0;
+        }
+
+        show(message, type = 'info', duration = 5000) {
+            const toastId = 'toast-' + Date.now() + '-' + this.toastCount++;
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-triangle',
+                warning: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+
+            const toastHTML = `
+                <div id="${toastId}" class="custom-toast toast-${type}" role="alert">
+                    <div class="toast-header">
+                        <i class="fas ${icons[type]} me-2"></i>
+                        <strong class="me-auto">${this.getTitle(type)}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <div class="toast-progress"></div>
+                </div>
+            `;
+
+            this.container.insertAdjacentHTML('beforeend', toastHTML);
+            const toastElement = document.getElementById(toastId);
+
+            // Auto-remove after duration
+            setTimeout(() => {
+                this.hide(toastElement);
+            }, duration);
+
+            // Auto-remove on close button click
+            toastElement.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => {
+                this.hide(toastElement);
+            });
+
+            return toastElement;
+        }
+
+        getTitle(type) {
+            const titles = {
+                success: 'Éxito',
+                error: 'Error',
+                warning: 'Advertencia',
+                info: 'Información'
+            };
+            return titles[type] || 'Notificación';
+        }
+
+        hide(toastElement) {
+            if (toastElement) {
+                toastElement.classList.add('hiding');
+                setTimeout(() => {
+                    if (toastElement.parentNode) {
+                        toastElement.parentNode.removeChild(toastElement);
+                    }
+                }, 300);
+            }
+        }
+
+        success(message, duration = 5000) {
+            return this.show(message, 'success', duration);
+        }
+
+        error(message, duration = 5000) {
+            return this.show(message, 'error', duration);
+        }
+
+        warning(message, duration = 5000) {
+            return this.show(message, 'warning', duration);
+        }
+
+        info(message, duration = 5000) {
+            return this.show(message, 'info', duration);
+        }
+    }
+
+    // Inicializar sistema de notificaciones
+    const notifications = new NotificationSystem();
+
     document.addEventListener('DOMContentLoaded', function() {
         const apiTokenInput = document.getElementById('apiToken');
         const toggleTokenBtn = document.getElementById('toggleToken');
@@ -384,7 +570,7 @@ require_once 'config/api_config.php';
             const token = apiTokenInput.value.trim();
             
             if (!token) {
-                showAlert('Por favor ingrese un token', 'error');
+                notifications.error('Por favor ingrese un token');
                 return;
             }
 
@@ -408,18 +594,18 @@ require_once 'config/api_config.php';
             })
             .then(data => {
                 if (data.success) {
-                    showAlert('✅ ' + data.message, 'success');
+                    notifications.success(data.message);
                     searchCard.classList.remove('d-none');
                     numeroAsignadoInput.focus();
                     localStorage.setItem('apiToken', token);
                 } else {
-                    showAlert('❌ ' + data.message, 'error');
+                    notifications.error(data.message);
                     searchCard.classList.add('d-none');
                     resultsCard.classList.add('d-none');
                 }
             })
             .catch(error => {
-                showAlert('❌ Error: ' + error.message, 'error');
+                notifications.error('Error: ' + error.message);
                 searchCard.classList.add('d-none');
                 resultsCard.classList.add('d-none');
             })
@@ -434,7 +620,7 @@ require_once 'config/api_config.php';
             const token = apiTokenInput.value.trim();
             
             if (!token) {
-                showAlert('Primero ingrese un token válido', 'error');
+                notifications.error('Primero ingrese un token válido');
                 return;
             }
 
@@ -460,13 +646,13 @@ require_once 'config/api_config.php';
                     jsonSection.classList.remove('d-none');
                     // Expandir el acordeón
                     new bootstrap.Collapse(document.getElementById('jsonCollapse')).show();
-                    showAlert('✅ Estructura de BD obtenida (ver consola para detalles)', 'success');
+                    notifications.success('Estructura de BD obtenida (ver consola para detalles)');
                 } else {
-                    showAlert('❌ Error obteniendo estructura: ' + (data.error || 'Desconocido'), 'error');
+                    notifications.error('Error obteniendo estructura: ' + (data.error || 'Desconocido'));
                 }
             })
             .catch(error => {
-                showAlert('❌ Error: ' + error.message, 'error');
+                notifications.error('Error: ' + error.message);
             })
             .finally(() => {
                 debugStructureBtn.disabled = false;
@@ -480,12 +666,12 @@ require_once 'config/api_config.php';
             const numero = numeroAsignadoInput.value.trim();
             
             if (!token) {
-                showAlert('Token no válido', 'error');
+                notifications.error('Token no válido');
                 return;
             }
             
             if (!numero) {
-                showAlert('Por favor ingrese un término de búsqueda', 'error');
+                notifications.error('Por favor ingrese un término de búsqueda');
                 return;
             }
 
@@ -498,6 +684,7 @@ require_once 'config/api_config.php';
             jsonSection.classList.add('d-none');
             numeroAsignadoInput.value = '';
             numeroAsignadoInput.focus();
+            notifications.info('Búsqueda limpiada, puede realizar una nueva búsqueda');
         });
 
         // Función para buscar mototaxi
@@ -508,6 +695,8 @@ require_once 'config/api_config.php';
             resultsCard.classList.remove('d-none');
             resultsContent.innerHTML = '';
             jsonSection.classList.add('d-none');
+
+            notifications.info(`Buscando: "${numero}"...`, 3000);
 
             fetch(`api/buscar.php?numero=${encodeURIComponent(numero)}`, {
                 method: 'GET',
@@ -531,6 +720,7 @@ require_once 'config/api_config.php';
                     displayMototaxiInfo(data.data);
                     jsonResponse.textContent = JSON.stringify(data, null, 2);
                     jsonSection.classList.remove('d-none');
+                    notifications.success(`Se encontraron ${data.count || 1} resultado(s) para "${numero}"`);
                 } else {
                     resultsContent.innerHTML = `
                         <div class="alert alert-warning">
@@ -538,6 +728,7 @@ require_once 'config/api_config.php';
                             ${data.message || 'No se encontraron resultados'}
                         </div>
                     `;
+                    notifications.warning(data.message || `No se encontraron resultados para "${numero}"`);
                 }
             })
             .catch(error => {
@@ -548,6 +739,7 @@ require_once 'config/api_config.php';
                         Error de búsqueda: ${error.message}
                     </div>
                 `;
+                notifications.error('Error de búsqueda: ' + error.message);
             })
             .finally(() => {
                 searchMototaxiBtn.disabled = false;
@@ -688,34 +880,14 @@ require_once 'config/api_config.php';
             return colors[color.toLowerCase()] || '#6c757d';
         }
 
-        // Mostrar alertas
-        function showAlert(message, type) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-            
-            const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="fas ${icon} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            
-            document.querySelector('.container').insertAdjacentHTML('afterbegin', alertHtml);
-            
-            setTimeout(() => {
-                const alert = document.querySelector('.alert');
-                if (alert) {
-                    alert.remove();
-                }
-            }, 5000);
-        }
-
         // Cargar token guardado si existe
         const savedToken = localStorage.getItem('apiToken');
         if (savedToken) {
             apiTokenInput.value = savedToken;
-            setTimeout(() => validateTokenBtn.click(), 1000);
+            setTimeout(() => {
+                validateTokenBtn.click();
+                notifications.info('Token cargado automáticamente desde almacenamiento local');
+            }, 1000);
         }
 
         // Permitir búsqueda con Enter
@@ -730,6 +902,11 @@ require_once 'config/api_config.php';
                 validateTokenBtn.click();
             }
         });
+
+        // Mostrar notificación de bienvenida
+        setTimeout(() => {
+            notifications.info('Bienvenido al Sistema de API Pública de Mototaxis Huanta');
+        }, 1000);
     });
     </script>
 </body>

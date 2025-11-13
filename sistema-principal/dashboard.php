@@ -58,24 +58,12 @@ try {
 
 <?php include 'includes/header.php'; ?>
 
+<!-- Contenedor de Notificaciones Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
 <div class="row">
     <div class="col-md-12">
         <h1 class="mb-3">PANEL DE CONTROL</h1>
-        <?php if (isset($_GET['mensaje'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                <?php echo htmlspecialchars($_GET['mensaje']); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($error)): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <?php echo htmlspecialchars($error); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
         
         <div class="alert alert-info">
             <i class="fas fa-user me-2"></i>
@@ -436,6 +424,108 @@ try {
 </div>
 
 <script>
+// Sistema de Notificaciones Toast
+class NotificationSystem {
+    constructor() {
+        this.container = document.getElementById('toastContainer');
+        if (!this.container) {
+            this.container = document.createElement('div');
+            this.container.className = 'toast-container';
+            this.container.id = 'toastContainer';
+            document.body.appendChild(this.container);
+        }
+        this.toastCount = 0;
+    }
+
+    show(message, type = 'info', duration = 5000) {
+        const toastId = 'toast-' + Date.now() + '-' + this.toastCount++;
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-triangle',
+            warning: 'fa-exclamation-circle',
+            info: 'fa-info-circle'
+        };
+
+        const toastHTML = `
+            <div id="${toastId}" class="custom-toast toast-${type}" role="alert">
+                <div class="toast-header">
+                    <i class="fas ${icons[type]} me-2"></i>
+                    <strong class="me-auto">${this.getTitle(type)}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <div class="toast-progress"></div>
+            </div>
+        `;
+
+        this.container.insertAdjacentHTML('beforeend', toastHTML);
+        const toastElement = document.getElementById(toastId);
+
+        // Auto-remove after duration
+        setTimeout(() => {
+            this.hide(toastElement);
+        }, duration);
+
+        // Auto-remove on close button click
+        toastElement.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => {
+            this.hide(toastElement);
+        });
+
+        return toastElement;
+    }
+
+    getTitle(type) {
+        const titles = {
+            success: 'Éxito',
+            error: 'Error',
+            warning: 'Advertencia',
+            info: 'Información'
+        };
+        return titles[type] || 'Notificación';
+    }
+
+    hide(toastElement) {
+        if (toastElement) {
+            toastElement.classList.add('hiding');
+            setTimeout(() => {
+                if (toastElement.parentNode) {
+                    toastElement.parentNode.removeChild(toastElement);
+                }
+            }, 300);
+        }
+    }
+
+    success(message, duration = 5000) {
+        return this.show(message, 'success', duration);
+    }
+
+    error(message, duration = 5000) {
+        return this.show(message, 'error', duration);
+    }
+
+    warning(message, duration = 5000) {
+        return this.show(message, 'warning', duration);
+    }
+
+    info(message, duration = 5000) {
+        return this.show(message, 'info', duration);
+    }
+}
+
+// Inicializar sistema de notificaciones
+const notifications = new NotificationSystem();
+
+// Mostrar notificaciones de mensajes existentes
+<?php if (isset($_GET['mensaje'])): ?>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        notifications.success('<?php echo addslashes($_GET['mensaje']); ?>');
+    }, 1000);
+});
+<?php endif; ?>
+
 function toggleDashboardToken(tokenId) {
     const preview = document.getElementById('dashboard-preview-' + tokenId);
     const complete = document.getElementById('dashboard-complete-' + tokenId);
@@ -470,7 +560,7 @@ function copiarDashboardToken(tokenId) {
             btn.classList.add('btn-outline-secondary');
         }, 2000);
     }).catch(function(err) {
-        alert('Error al copiar el token: ' + err);
+        notifications.error('Error al copiar el token: ' + err);
     });
 }
 
@@ -478,6 +568,13 @@ function copiarDashboardToken(tokenId) {
 setTimeout(function() {
     window.location.reload();
 }, 30000);
+
+// Mostrar notificación de bienvenida
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        notifications.info('Bienvenido al Panel de Control de MotoTaxis Huanta');
+    }, 1500);
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>

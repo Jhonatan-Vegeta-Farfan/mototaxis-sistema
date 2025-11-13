@@ -33,6 +33,9 @@ try {
 
 <?php include 'includes/header.php'; ?>
 
+<!-- Contenedor de Notificaciones Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">
         <i class="fas fa-key me-2"></i>Gestión de Tokens
@@ -49,22 +52,6 @@ try {
         </a>
     </div>
 </div>
-
-<?php if (isset($_GET['mensaje'])): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        <?php echo htmlspecialchars($_GET['mensaje']); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
-
-<?php if (isset($error)): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <?php echo htmlspecialchars($error); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-<?php endif; ?>
 
 <div class="card">
     <div class="card-header bg-light">
@@ -147,14 +134,14 @@ try {
                                             <a href="tokens.php?id=<?php echo $token['id']; ?>&toggle_status=deactivate" 
                                                class="btn btn-sm btn-warning" 
                                                title="Desactivar token"
-                                               onclick="return confirm('¿Estás seguro de desactivar este token?')">
+                                               onclick="return confirmNotification('¿Estás seguro de desactivar este token?', this)">
                                                 <i class="fas fa-pause"></i>
                                             </a>
                                         <?php else: ?>
                                             <a href="tokens.php?id=<?php echo $token['id']; ?>&toggle_status=activate" 
                                                class="btn btn-sm btn-success" 
                                                title="Activar token"
-                                               onclick="return confirm('¿Estás seguro de activar este token?')">
+                                               onclick="return confirmNotification('¿Estás seguro de activar este token?', this)">
                                                 <i class="fas fa-play"></i>
                                             </a>
                                         <?php endif; ?>
@@ -170,7 +157,7 @@ try {
                                         </a>
                                         <a href="eliminar_token.php?id=<?php echo $token['id']; ?>" 
                                            class="btn btn-sm btn-danger" 
-                                           onclick="return confirm('¿Estás seguro de eliminar este token?')"
+                                           onclick="return confirmNotification('¿Estás seguro de eliminar este token?', this)"
                                            title="Eliminar token">
                                             <i class="fas fa-trash"></i>
                                         </a>
@@ -284,6 +271,108 @@ try {
 </div>
 
 <script>
+// Sistema de Notificaciones Toast
+class NotificationSystem {
+    constructor() {
+        this.container = document.getElementById('toastContainer');
+        if (!this.container) {
+            this.container = document.createElement('div');
+            this.container.className = 'toast-container';
+            this.container.id = 'toastContainer';
+            document.body.appendChild(this.container);
+        }
+        this.toastCount = 0;
+    }
+
+    show(message, type = 'info', duration = 5000) {
+        const toastId = 'toast-' + Date.now() + '-' + this.toastCount++;
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-triangle',
+            warning: 'fa-exclamation-circle',
+            info: 'fa-info-circle'
+        };
+
+        const toastHTML = `
+            <div id="${toastId}" class="custom-toast toast-${type}" role="alert">
+                <div class="toast-header">
+                    <i class="fas ${icons[type]} me-2"></i>
+                    <strong class="me-auto">${this.getTitle(type)}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <div class="toast-progress"></div>
+            </div>
+        `;
+
+        this.container.insertAdjacentHTML('beforeend', toastHTML);
+        const toastElement = document.getElementById(toastId);
+
+        // Auto-remove after duration
+        setTimeout(() => {
+            this.hide(toastElement);
+        }, duration);
+
+        // Auto-remove on close button click
+        toastElement.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => {
+            this.hide(toastElement);
+        });
+
+        return toastElement;
+    }
+
+    getTitle(type) {
+        const titles = {
+            success: 'Éxito',
+            error: 'Error',
+            warning: 'Advertencia',
+            info: 'Información'
+        };
+        return titles[type] || 'Notificación';
+    }
+
+    hide(toastElement) {
+        if (toastElement) {
+            toastElement.classList.add('hiding');
+            setTimeout(() => {
+                if (toastElement.parentNode) {
+                    toastElement.parentNode.removeChild(toastElement);
+                }
+            }, 300);
+        }
+    }
+
+    success(message, duration = 5000) {
+        return this.show(message, 'success', duration);
+    }
+
+    error(message, duration = 5000) {
+        return this.show(message, 'error', duration);
+    }
+
+    warning(message, duration = 5000) {
+        return this.show(message, 'warning', duration);
+    }
+
+    info(message, duration = 5000) {
+        return this.show(message, 'info', duration);
+    }
+}
+
+// Inicializar sistema de notificaciones
+const notifications = new NotificationSystem();
+
+// Mostrar notificaciones de mensajes existentes
+<?php if (isset($_GET['mensaje'])): ?>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        notifications.success('<?php echo addslashes($_GET['mensaje']); ?>');
+    }, 1000);
+});
+<?php endif; ?>
+
 function toggleToken(tokenId) {
     const preview = document.getElementById('token-preview-' + tokenId);
     const complete = document.getElementById('token-complete-' + tokenId);
@@ -300,27 +389,32 @@ function toggleToken(tokenId) {
     }
 }
 
+// Función para confirmaciones con notificaciones
+function confirmNotification(message, link) {
+    if (confirm(message)) {
+        notifications.info('Procesando solicitud...', 3000);
+        return true;
+    }
+    return false;
+}
+
 // Función para copiar token
 function copiarToken(tokenId) {
     const tokenCompleto = document.getElementById('token-complete-' + tokenId).textContent;
     
     navigator.clipboard.writeText(tokenCompleto).then(function() {
-        // Mostrar mensaje de éxito
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i>';
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-success');
-        
-        setTimeout(function() {
-            btn.innerHTML = originalText;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-outline-secondary');
-        }, 2000);
+        notifications.success('Token copiado al portapapeles');
     }).catch(function(err) {
-        alert('Error al copiar el token: ' + err);
+        notifications.error('Error al copiar el token: ' + err);
     });
 }
+
+// Mostrar notificación de carga
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        notifications.info('Gestión de tokens cargada correctamente');
+    }, 1000);
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>
