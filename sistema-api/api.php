@@ -316,15 +316,7 @@ require_once 'config/api_config.php';
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <div class="collapse navbar-collapse" id="navbarPublic">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../sistema-principal/login.php" target="_blank">
-                            <i class="fas fa-cog me-1"></i>Panel de Administración
-                        </a>
-                    </li>
-                </ul>
-            </div>
+
         </div>
     </nav>
 
@@ -345,7 +337,7 @@ require_once 'config/api_config.php';
                             <div class="input-group">
                                 <input type="password" class="form-control" id="apiToken" 
                                        placeholder="Ingrese su token de acceso API"
-                                       value="">
+                                       hidden="">
                                 <button class="btn btn-outline-secondary" type="button" id="toggleToken">
                                     <i class="fas fa-eye"></i>
                                 </button>

@@ -4,13 +4,13 @@ class ApiConfig {
     const DB_HOST = 'localhost';
     const DB_NAME = 'prograp_cliente_api';
     const DB_USER = 'root';
-    const DB_PASS = ''; // Para XAMPP
+    const DB_PASS = 'root'; // Para XAMPP
     
     // Configuración para el sistema principal
     const SYSTEM_DB_HOST = 'localhost';
     const SYSTEM_DB_NAME = 'mototaxis_huanta';
     const SYSTEM_DB_USER = 'root';
-    const SYSTEM_DB_PASS = ''; // Para XAMPP
+    const SYSTEM_DB_PASS = 'root'; // Para XAMPP
     
     const API_KEY_HEADER = 'X-API-Token';
     const ALLOWED_ORIGINS = [

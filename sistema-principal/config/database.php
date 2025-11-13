@@ -3,7 +3,7 @@
 $host = 'localhost';
 $dbname = 'prograp_cliente_api';
 $username = 'root';
-$password = '';
+$password = 'root';
 
 // Detectar entorno (MAMP, XAMPP, hosting)
 if (file_exists('/Applications/MAMP')) {
@@ -12,7 +12,7 @@ if (file_exists('/Applications/MAMP')) {
     $password = 'root';
 } elseif (file_exists('C:\xampp') || file_exists('/opt/lampp')) {
     // XAMPP
-    $password = '';
+    $password = 'root';
 }
 
 try {
