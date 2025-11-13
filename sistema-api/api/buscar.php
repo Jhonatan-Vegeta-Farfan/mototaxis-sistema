@@ -8,9 +8,6 @@ ApiConfig::enableCORS();
 
 // Log para debugging
 error_log("=== BUSCAR MOTOTAXI REQUEST ===");
-error_log("Headers: " . json_encode(getallheaders()));
-error_log("GET: " . json_encode($_GET));
-error_log("POST: " . json_encode($_POST));
 
 try {
     // Autenticar con token
@@ -28,7 +25,6 @@ try {
     
     // Obtener parámetros
     $numeroAsignado = $_GET['numero'] ?? '';
-    $tipoBusqueda = $_GET['tipo'] ?? 'auto';
     
     if (empty($numeroAsignado)) {
         http_response_code(400);
@@ -59,16 +55,10 @@ try {
     // Agregar información de la solicitud
     $result['request_info'] = [
         'numero_buscado' => $numeroAsignado,
-        'tipo_busqueda' => $tipoBusqueda,
         'timestamp' => date('Y-m-d H:i:s'),
         'token_used' => substr($token, 0, 10) . '...',
         'api_version' => '1.0'
     ];
-    
-    // Headers de respuesta
-    header('X-API-Version: 1.0');
-    header('X-Search-Term: ' . $numeroAsignado);
-    header('X-Results-Count: ' . ($result['success'] ? $result['count'] : 0));
     
     echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     

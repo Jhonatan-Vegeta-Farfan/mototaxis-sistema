@@ -31,7 +31,7 @@ class AuthMiddleware {
             echo json_encode([
                 'success' => false, 
                 'message' => 'Formato de token inválido',
-                'token_received' => $token
+                'token_received' => substr($token, 0, 20) . '...'
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             exit;
         }
@@ -41,25 +41,15 @@ class AuthMiddleware {
             http_response_code(403);
             echo json_encode([
                 'success' => false, 
-                'message' => 'Token inválido o no autorizado',
+                'message' => 'Token inválido o desactivado',
                 'token_received' => substr($token, 0, 10) . '...',
-                'suggestion' => 'Verifique que el token exista en el sistema de gestión'
+                'suggestion' => 'Verifique que el token exista y esté activo en el sistema'
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             exit;
         }
         
         error_log("AuthMiddleware: Token válido - " . substr($token, 0, 10) . '...');
         return $token;
-    }
-    
-    public function optionalAuth() {
-        $token = ApiConfig::getTokenFromHeaders();
-        
-        if ($token && ApiConfig::validateTokenFormat($token)) {
-            return $this->tokenManager->validateToken($token) ? $token : null;
-        }
-        
-        return null;
     }
 }
 ?>

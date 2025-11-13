@@ -4,67 +4,68 @@ class ApiConfig {
     const DB_HOST = 'localhost';
     const DB_NAME = 'prograp_cliente_api';
     const DB_USER = 'root';
-    const DB_PASS = 'root'; // Para MAMP
+    const DB_PASS = ''; // Para XAMPP
     
     // Configuración para el sistema principal
     const SYSTEM_DB_HOST = 'localhost';
-    const SYSTEM_DB_NAME = 'mototaxis_huanta'; // Cambia por tu BD real del sistema
+    const SYSTEM_DB_NAME = 'mototaxis_huanta';
     const SYSTEM_DB_USER = 'root';
-    const SYSTEM_DB_PASS = 'root'; // Para MAMP
+    const SYSTEM_DB_PASS = ''; // Para XAMPP
     
     const API_KEY_HEADER = 'X-API-Token';
     const ALLOWED_ORIGINS = [
         'https://mototaxis-huanta.dpweb2024.com',
         'https://localhost:8888',
         'https://127.0.0.1:8888',
-        'https://mototaxis-huanta.dpweb2024.com/api',
+        'https://localhost',
+        'http://localhost',
+        'https://127.0.0.1',
+        'http://127.0.0.1',
         'https://localhost:3000',
+        'http://localhost:3000',
         '*'
     ];
     
     public static function getTokenDB() {
         try {
-            $pdo = new PDO(
-                "mysql:host=" . self::DB_HOST . ";dbname=" . self::DB_NAME . ";charset=utf8mb4",
-                self::DB_USER,
-                self::DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
-            );
+            $dsn = "mysql:host=" . self::DB_HOST . ";dbname=" . self::DB_NAME . ";charset=utf8mb4";
+            $pdo = new PDO($dsn, self::DB_USER, self::DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]);
             return $pdo;
         } catch (PDOException $e) {
             error_log("Error conexión BD tokens: " . $e->getMessage());
-            throw new Exception("Error de conexión a la base de datos de tokens");
+            throw new Exception("Error de conexión a la base de datos de tokens: " . $e->getMessage());
         }
     }
     
     public static function getSystemDB() {
         try {
-            $pdo = new PDO(
-                "mysql:host=" . self::SYSTEM_DB_HOST . ";dbname=" . self::SYSTEM_DB_NAME . ";charset=utf8mb4",
-                self::SYSTEM_DB_USER,
-                self::SYSTEM_DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
-            );
+            $dsn = "mysql:host=" . self::SYSTEM_DB_HOST . ";dbname=" . self::SYSTEM_DB_NAME . ";charset=utf8mb4";
+            $pdo = new PDO($dsn, self::SYSTEM_DB_USER, self::SYSTEM_DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]);
             return $pdo;
         } catch (PDOException $e) {
             error_log("Error conexión BD sistema: " . $e->getMessage());
-            throw new Exception("Error de conexión al sistema principal");
+            throw new Exception("Error de conexión al sistema principal: " . $e->getMessage());
         }
     }
     
     public static function enableCORS() {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $http_origin = $_SERVER['HTTP_ORIGIN'] ?? '';
         
-        if (in_array($origin, self::ALLOWED_ORIGINS) || in_array('*', self::ALLOWED_ORIGINS)) {
-            header("Access-Control-Allow-Origin: " . ($origin ?: '*'));
+        // Si no hay origen específico o está en la lista de permitidos
+        if (empty($http_origin) || in_array($http_origin, self::ALLOWED_ORIGINS) || in_array('*', self::ALLOWED_ORIGINS)) {
+            header("Access-Control-Allow-Origin: " . ($http_origin ?: '*'));
+        } else {
+            // Si el origen no está permitido, usar el primero de la lista
+            header("Access-Control-Allow-Origin: " . self::ALLOWED_ORIGINS[0]);
         }
         
         header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");

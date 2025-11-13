@@ -19,6 +19,9 @@ try {
     $tokenManager = new TokenManager();
     $tokenInfo = $tokenManager->getTokenInfo($token);
     
+    // Obtener todos los tokens para debug
+    $allTokens = $tokenManager->getAllTokens();
+    
     $response = [
         'success' => true, 
         'message' => '✅ Token válido',
@@ -26,12 +29,23 @@ try {
             'token_preview' => substr($token, 0, 10) . '...',
             'description' => $tokenInfo['descripcion'] ?? 'Sin descripción',
             'created_date' => $tokenInfo['fecha_creacion'] ?? 'Desconocida',
-            'token_id' => $tokenInfo['id'] ?? 'N/A'
+            'token_id' => $tokenInfo['id'] ?? 'N/A',
+            'active' => $tokenInfo['activo'] ?? true
         ],
         'validation' => [
             'timestamp' => date('Y-m-d H:i:s'),
-            'expires' => 'No expira', // Los tokens no expiran en este sistema
+            'expires' => 'No expira',
             'permissions' => ['read', 'search']
+        ],
+        'debug_info' => [
+            'total_tokens_in_system' => count($allTokens),
+            'tokens_available' => array_map(function($t) {
+                return [
+                    'id' => $t['id'],
+                    'preview' => substr($t['token'], 0, 15) . '...',
+                    'active' => $t['activo'] ?? true
+                ];
+            }, $allTokens)
         ],
         'api_info' => [
             'version' => '1.0',

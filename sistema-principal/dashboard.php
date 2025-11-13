@@ -3,22 +3,57 @@ $page_title = "Panel de Control - MotoTaxis Cliente";
 require_once 'includes/auth_check.php';
 require_once 'config/database.php';
 
+// Manejar activación/desactivación de tokens desde el dashboard
+if (isset($_GET['toggle_status']) && isset($_GET['id'])) {
+    $tokenId = intval($_GET['id']);
+    $status = $_GET['toggle_status'] === 'activate' ? 1 : 0;
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE token_api SET activo = ? WHERE id = ?");
+        $stmt->execute([$status, $tokenId]);
+        
+        $action = $status ? 'activado' : 'desactivado';
+        header('Location: dashboard.php?mensaje=Token ' . $action . ' correctamente');
+        exit();
+    } catch (PDOException $e) {
+        header('Location: dashboard.php?mensaje=Error al cambiar estado del token: ' . $e->getMessage());
+        exit();
+    }
+}
+
 // Obtener estadísticas
-$stmt = $pdo->query("SELECT COUNT(*) as total_tokens FROM token_api");
-$total_tokens = $stmt->fetch()['total_tokens'];
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) as total_tokens FROM token_api");
+    $total_tokens = $stmt->fetch()['total_tokens'];
 
-$stmt = $pdo->query("SELECT COUNT(*) as total_usuarios FROM usuarios");
-$total_usuarios = $stmt->fetch()['total_usuarios'];
+    $stmt = $pdo->query("SELECT COUNT(*) as total_usuarios FROM usuarios");
+    $total_usuarios = $stmt->fetch()['total_usuarios'];
 
-// Obtener estadísticas de tokens auto-generados
-$stmt = $pdo->query("SELECT COUNT(*) as auto_generados FROM token_api WHERE token REGEXP '^[a-f0-9]{32}-MOT-[0-9]+$'");
-$auto_generados = $stmt->fetch()['auto_generados'];
+    // Obtener estadísticas de tokens auto-generados
+    $stmt = $pdo->query("SELECT COUNT(*) as auto_generados FROM token_api WHERE token REGEXP '^[a-f0-9]{32}-MOT-[0-9]+$'");
+    $auto_generados = $stmt->fetch()['auto_generados'];
 
-$tokens_manuales = $total_tokens - $auto_generados;
+    $tokens_manuales = $total_tokens - $auto_generados;
 
-// Obtener todos los tokens para mostrar en el dashboard
-$stmt = $pdo->query("SELECT * FROM token_api ORDER BY id DESC");
-$tokens = $stmt->fetchAll();
+    // Obtener estadísticas de tokens activos/inactivos
+    $stmt = $pdo->query("SELECT COUNT(*) as activos FROM token_api WHERE activo = 1");
+    $tokens_activos = $stmt->fetch()['activos'];
+    
+    $tokens_inactivos = $total_tokens - $tokens_activos;
+
+    // Obtener todos los tokens para mostrar en el dashboard
+    $stmt = $pdo->query("SELECT * FROM token_api ORDER BY id DESC LIMIT 6");
+    $tokens = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $total_tokens = 0;
+    $total_usuarios = 0;
+    $auto_generados = 0;
+    $tokens_manuales = 0;
+    $tokens_activos = 0;
+    $tokens_inactivos = 0;
+    $tokens = [];
+    $error = "Error al cargar estadísticas: " . $e->getMessage();
+}
 ?>
 
 <?php include 'includes/header.php'; ?>
@@ -26,14 +61,113 @@ $tokens = $stmt->fetchAll();
 <div class="row">
     <div class="col-md-12">
         <h1 class="mb-3">PANEL DE CONTROL</h1>
+        <?php if (isset($_GET['mensaje'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <?php echo htmlspecialchars($_GET['mensaje']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($error)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <?php echo htmlspecialchars($error); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        
         <div class="alert alert-info">
             <i class="fas fa-user me-2"></i>
-            Bienvenido, <strong><?php echo $_SESSION['usuario_nombre']; ?></strong>
+            Bienvenido, <strong><?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></strong>
         </div>
     </div>
 </div>
 
-
+<!-- Estadísticas Principales -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Total Tokens</h5>
+                        <h3><?php echo $total_tokens; ?></h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-key fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>
+                        <i class="fas fa-check-circle me-1"></i><?php echo $tokens_activos; ?> activos
+                        <i class="fas fa-pause-circle ms-2 me-1"></i><?php echo $tokens_inactivos; ?> inactivos
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Tokens Activos</h5>
+                        <h3><?php echo $tokens_activos; ?></h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>
+                        <i class="fas fa-bolt me-1"></i><?php echo $auto_generados; ?> auto-generados
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Tokens Inactivos</h5>
+                        <h3><?php echo $tokens_inactivos; ?></h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-pause-circle fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>
+                        <i class="fas fa-edit me-1"></i><?php echo $tokens_manuales; ?> manuales
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Total Usuarios</h5>
+                        <h3><?php echo $total_usuarios; ?></h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>
+                        <i class="fas fa-user me-1"></i>Sistema de gestión
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Acciones Rápidas -->
 <div class="row mt-4">
@@ -64,30 +198,40 @@ $tokens = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Vista Previa de Todos los Tokens -->
+<!-- Vista Previa de Tokens Recientes -->
 <div class="row mt-4">
     <div class="col-md-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center bg-light">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-eye me-2"></i>Vista Previa de Tokens
+                    <i class="fas fa-eye me-2"></i>Tokens Recientes
                 </h5>
                 <div>
-                    <span class="badge bg-primary"><?php echo $total_tokens; ?> tokens</span>
-                    <span class="badge bg-success"><?php echo $auto_generados; ?> auto</span>
-                    <span class="badge bg-warning text-dark"><?php echo $tokens_manuales; ?> manual</span>
+                    <span class="badge bg-primary"><?php echo count($tokens); ?> tokens</span>
+                    <a href="tokens.php" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-right me-1"></i>Ver Todos
+                    </a>
                 </div>
             </div>
             <div class="card-body">
                 <?php if (count($tokens) > 0): ?>
                     <div class="row">
-                        <?php foreach ($tokens as $token): ?>
+                        <?php foreach ($tokens as $token): 
+                            // Asegurarse de que el campo activo existe
+                            $activo = isset($token['activo']) ? $token['activo'] : 1;
+                            $descripcion = isset($token['descripcion']) ? $token['descripcion'] : '';
+                        ?>
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card h-100 token-card">
                                     <div class="card-header">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <h6 class="card-title mb-0">Token #<?php echo $token['id']; ?></h6>
                                             <div>
+                                                <?php if ($activo): ?>
+                                                    <span class="badge bg-success">Activo</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-danger">Inactivo</span>
+                                                <?php endif; ?>
                                                 <?php 
                                                 $es_auto_generado = preg_match('/^[a-f0-9]{32}-MOT-\d+$/', $token['token']);
                                                 if ($es_auto_generado): ?>
@@ -95,16 +239,15 @@ $tokens = $stmt->fetchAll();
                                                 <?php else: ?>
                                                     <span class="badge bg-warning text-dark">Manual</span>
                                                 <?php endif; ?>
-                                                <span class="badge bg-secondary"><?php echo strlen($token['token']); ?> chars</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-body">
                                         <!-- Descripción -->
-                                        <?php if ($token['descripcion']): ?>
+                                        <?php if (!empty($descripcion)): ?>
                                             <p class="card-text mb-2">
                                                 <strong>Descripción:</strong><br>
-                                                <?php echo htmlspecialchars($token['descripcion']); ?>
+                                                <?php echo htmlspecialchars($descripcion); ?>
                                             </p>
                                             <hr>
                                         <?php endif; ?>
@@ -140,28 +283,61 @@ $tokens = $stmt->fetchAll();
                                                     onclick="toggleDashboardToken(<?php echo $token['id']; ?>)">
                                                 <span class="toggle-text-<?php echo $token['id']; ?>">Ver</span>
                                             </button>
+                                            
+                                            <!-- Botón Activar/Desactivar -->
+                                            <?php if ($activo): ?>
+                                                <a href="dashboard.php?id=<?php echo $token['id']; ?>&toggle_status=deactivate" 
+                                                   class="btn btn-sm btn-outline-warning" 
+                                                   title="Desactivar token"
+                                                   onclick="return confirm('¿Estás seguro de desactivar este token?')">
+                                                    <i class="fas fa-pause"></i>
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="dashboard.php?id=<?php echo $token['id']; ?>&toggle_status=activate" 
+                                                   class="btn btn-sm btn-outline-success" 
+                                                   title="Activar token"
+                                                   onclick="return confirm('¿Estás seguro de activar este token?')">
+                                                    <i class="fas fa-play"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            
                                             <a href="ver_token.php?id=<?php echo $token['id']; ?>" class="btn btn-sm btn-outline-info">
                                                 Completo
-                                            </a>
-                                            <a href="editar_token.php?id=<?php echo $token['id']; ?>" class="btn btn-sm btn-outline-warning">
-                                                Editar
                                             </a>
                                         </div>
                                     </div>
                                     <div class="card-footer text-muted small">
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <span>ID: <?php echo $token['id']; ?></span>
-                                            <a href="eliminar_token.php?id=<?php echo $token['id']; ?>" 
-                                               class="text-danger" 
-                                               onclick="return confirm('¿Estás seguro de eliminar este token?')">
-                                                Eliminar
-                                            </a>
+                                            <div>
+                                                <a href="editar_token.php?id=<?php echo $token['id']; ?>" 
+                                                   class="text-warning me-2" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="eliminar_token.php?id=<?php echo $token['id']; ?>" 
+                                                   class="text-danger" 
+                                                   onclick="return confirm('¿Estás seguro de eliminar este token?')"
+                                                   title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    
+                    <!-- Mensaje si hay más tokens -->
+                    <?php if ($total_tokens > 6): ?>
+                        <div class="text-center mt-3">
+                            <p class="text-muted">
+                                Mostrando los 6 tokens más recientes. 
+                                <a href="tokens.php" class="text-decoration-none">Ver todos los <?php echo $total_tokens; ?> tokens</a>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+                    
                 <?php else: ?>
                     <div class="text-center py-4">
                         <i class="fas fa-key fa-3x text-muted mb-3"></i>
@@ -176,6 +352,84 @@ $tokens = $stmt->fetchAll();
                         </div>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen de Actividad -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Resumen de Tokens
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-primary"><?php echo $total_tokens; ?></h4>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-success"><?php echo $tokens_activos; ?></h4>
+                            <small class="text-muted">Activos</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div>
+                            <h4 class="text-warning"><?php echo $tokens_inactivos; ?></h4>
+                            <small class="text-muted">Inactivos</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-info"><?php echo $auto_generados; ?></h4>
+                            <small class="text-muted">Auto-Generados</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div>
+                            <h4 class="text-secondary"><?php echo $tokens_manuales; ?></h4>
+                            <small class="text-muted">Manuales</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Gestión Rápida
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="generar_token.php" class="btn btn-outline-primary text-start">
+                        <i class="fas fa-bolt me-2"></i>Generar Token Automático
+                    </a>
+                    <a href="tokens.php" class="btn btn-outline-success text-start">
+                        <i class="fas fa-list me-2"></i>Gestionar Todos los Tokens
+                    </a>
+                    <a href="../sistema-api/api.php" target="_blank" class="btn btn-outline-info text-start">
+                        <i class="fas fa-external-link-alt me-2"></i>Probar API Pública
+                    </a>
+                    <?php if ($tokens_inactivos > 0): ?>
+                        <a href="tokens.php?filter=inactive" class="btn btn-outline-warning text-start">
+                            <i class="fas fa-pause-circle me-2"></i>Ver Tokens Inactivos (<?php echo $tokens_inactivos; ?>)
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -219,6 +473,11 @@ function copiarDashboardToken(tokenId) {
         alert('Error al copiar el token: ' + err);
     });
 }
+
+// Actualizar la página cada 30 segundos para mantener las estadísticas actualizadas
+setTimeout(function() {
+    window.location.reload();
+}, 30000);
 </script>
 
 <?php include 'includes/footer.php'; ?>

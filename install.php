@@ -2,9 +2,18 @@
 // Script de instalación del sistema
 echo "<h1>Instalador del Sistema de MotoTaxis</h1>";
 
-$host = 'localhost:8889';
+// Configuración adaptable
+$host = 'localhost';
 $username = 'root';
-$password = 'root';
+$password = '';
+
+// Detectar entorno
+if (file_exists('/Applications/MAMP')) {
+    $host = 'localhost:8889';
+    $password = 'root';
+} elseif (file_exists('C:\xampp') || file_exists('/opt/lampp')) {
+    $password = '';
+}
 
 try {
     // Conectar sin seleccionar base de datos
@@ -28,7 +37,7 @@ try {
         )
     ");
     
-    // Crear tabla de tokens API
+    // Crear tabla de tokens API con campo activo
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS token_api (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -41,20 +50,37 @@ try {
         )
     ");
     
+    // Crear tabla de logs de API
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS api_logs (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            token_id INT,
+            endpoint VARCHAR(255),
+            ip_address VARCHAR(45),
+            user_agent TEXT,
+            fecha_consulta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_token_id (token_id),
+            INDEX idx_fecha_consulta (fecha_consulta)
+        )
+    ");
+    
     // Insertar usuario por defecto
     $stmt = $pdo->prepare("INSERT IGNORE INTO usuarios (nombre, contrasena, email) VALUES (?, ?, ?)");
     $stmt->execute(['admin', 'admin123', 'admin@mototaxishuanta.com']);
     
-    // Insertar tokens de ejemplo
-    $stmt = $pdo->prepare("INSERT IGNORE INTO token_api (token, descripcion) VALUES (?, ?), (?, ?)");
+    // Generar tokens de ejemplo automáticamente
+    $token1 = bin2hex(random_bytes(16)) . '-MOT-1';
+    $token2 = bin2hex(random_bytes(16)) . '-MOT-2';
+    
+    $stmt = $pdo->prepare("INSERT IGNORE INTO token_api (token, descripcion, activo) VALUES (?, ?, 1), (?, ?, 1)");
     $stmt->execute([
-        '716532101831aa4b61b6816e40e398bd-MOT-2', 'Token principal para API de producción',
-        '8ed9873d99e3ab18c922eaf4af3ee20f-STI-1', 'Token secundario para desarrollo'
+        $token1, 'Token principal para API de producción',
+        $token2, 'Token secundario para desarrollo'
     ]);
     
     echo "<div class='alert alert-success'>✅ Base de datos cliente_api creada y configurada correctamente</div>";
     
-    // Crear base de datos del sistema principal (ejemplo)
+    // Crear base de datos del sistema principal
     $pdo->exec("CREATE DATABASE IF NOT EXISTS mototaxis_huanta");
     $pdo->exec("USE mototaxis_huanta");
     
@@ -95,6 +121,7 @@ try {
     
     echo "<div class='alert alert-success'>✅ Base de datos mototaxis_huanta creada y poblada con datos de ejemplo</div>";
     echo "<div class='alert alert-info'>📝 Credenciales por defecto:<br>Usuario: admin<br>Contraseña: admin123</div>";
+    echo "<div class='alert alert-info'>🔑 Tokens generados automáticamente con formato: [hexadecimal]-MOT-[número]</div>";
     echo "<div class='alert alert-warning'>⚠️ Recuerda eliminar este archivo (install.php) después de la instalación</div>";
     
 } catch (PDOException $e) {
